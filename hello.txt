@@ -1,0 +1,70 @@
+Configuration	hello
+STM32CubeMX 	6.15.0
+Date	10/31/2025
+MCU	STM32H753ZITx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+DEBUG	Serial Wire	DEBUG_JTCK-SWCLK	PA14 (JTCK/SWCLK)
+DEBUG	Serial Wire	DEBUG_JTMS-SWDIO	PA13 (JTMS/SWDIO)
+SYS	TIM17	SYS_VS_tim17	VP_SYS_VS_tim17
+UART4	Asynchronous	UART4_RX	PA1
+UART4	Asynchronous	UART4_TX	PA0
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+34	PA0	UART4_TX	
+35	PA1	UART4_RX	
+46	PB0	GPIO_Output	green_LED
+47	PB1	GPIO_Output	LED
+75	PB14	GPIO_Output	red_LED
+105	PA13 (JTMS/SWDIO)	DEBUG_JTMS-SWDIO	
+109	PA14 (JTCK/SWCLK)	DEBUG_JTCK-SWCLK	
+142	PE1	GPIO_Output	YELLOW_LED
+PERIPHERALS	MODES	FUNCTIONS	PINS
+DEBUG	Serial Wire	DEBUG_JTCK-SWCLK	PA14 (JTCK/SWCLK)
+DEBUG	Serial Wire	DEBUG_JTMS-SWDIO	PA13 (JTMS/SWDIO)
+SYS	TIM17	SYS_VS_tim17	VP_SYS_VS_tim17
+UART4	Asynchronous	UART4_RX	PA1
+UART4	Asynchronous	UART4_TX	PA0
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+34	PA0	UART4_TX	
+35	PA1	UART4_RX	
+46	PB0	GPIO_Output	green_LED
+47	PB1	GPIO_Output	LED
+75	PB14	GPIO_Output	red_LED
+105	PA13 (JTMS/SWDIO)	DEBUG_JTMS-SWDIO	
+109	PA14 (JTCK/SWCLK)	DEBUG_JTCK-SWCLK	
+142	PE1	GPIO_Output	YELLOW_LED
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : hello
+Project Folder : E:\ST\stm32H753ZIT6CubeMX\hello
+Toolchain / IDE : CMake
+Firmware Package Name and Version : STM32Cube FW_H7 V1.12.1
+
+
+Code Generation Settings : 
+STM32Cube MCU packages and embedded software packs : Copy all used libraries into the project folder
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+
