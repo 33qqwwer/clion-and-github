@@ -1,10 +1,9 @@
 
 #include "lcd.h"
 #include "usart.h"
-#include "spi.h"
 //管理LCD重要参数
 //默认为竖屏
-_lcd_dev lcddev = {0};
+_lcd_dev lcddev;
 
 //画笔颜色,背景颜色
 u16 POINT_COLOR = 0x0000,BACK_COLOR = 0xFFFF;  
@@ -12,9 +11,6 @@ u16 DeviceCode;
 
 
 uint8_t g_status[]="NO_OK\r\n";
-
-//定义LCD的LED背光控制
-#define LCD_LED(n) (n?HAL_GPIO_WritePin(LCD_LED_GPIO_Port, LCD_LED_Pin, GPIO_PIN_SET):HAL_GPIO_WritePin(LCD_LED_GPIO_Port, LCD_LED_Pin, GPIO_PIN_RESET))
 
 /*****************************************************************************
  * @name       :void LCD_WR_REG(u8 data)
@@ -25,14 +21,14 @@ uint8_t g_status[]="NO_OK\r\n";
 ******************************************************************************/
 void LCD_WR_REG(u8 data)
 {
-	LCD_CS_CLR;
-	LCD_RS_CLR;
+		LCD_CS_CLR;
+		 LCD_RS_CLR;
 	uint8_t status=HAL_SPI_Transmit(&hspi3, &data, 1, 10);
 	if (status!=HAL_OK)
 	{
 		HAL_UART_Transmit(&huart3, g_status, sizeof(g_status), 10);
 	}
-	LCD_CS_SET;     // 5. 取消选中屏幕
+		LCD_CS_SET;     // 5. 取消选中屏幕
 }
 
 /*****************************************************************************
@@ -44,12 +40,12 @@ void LCD_WR_REG(u8 data)
 ******************************************************************************/
 void LCD_WR_DATA(u8 data)
 {
-	LCD_CS_CLR;
-	LCD_RS_SET;
+	 LCD_CS_CLR;
+	 LCD_RS_SET;
 	uint8_t status=HAL_SPI_Transmit(&hspi3, &data, 1, 10);
 	if (status!=HAL_OK)
 	{
-		HAL_UART_Transmit(&huart3, g_status, sizeof(g_status), 10);
+		HAL_UART_Transmit(&huart3,g_status, sizeof(g_status), 10);
 	}
 	LCD_CS_SET;
 }
@@ -195,18 +191,20 @@ void LCD_Clear(u16 Color)
 {
 	uint8_t color_h=Color>>8 & 0xff;
 	uint8_t color_l=Color & 0xff;
-	uint32_t total_pixels = lcddev.width * lcddev.height;
-	uint32_t i;
-	LCD_SetWindows(0, 0, lcddev.width-1, lcddev.height-1);
+  unsigned int i,m;  
+	LCD_SetWindows(0,0,lcddev.width-1,lcddev.height-1);   
 	LCD_CS_CLR;
 	LCD_RS_SET;
-	for(i=0; i<total_pixels; i++)
+	for(i=0;i<lcddev.height;i++)
 	{
-		HAL_SPI_Transmit(&hspi3, &color_h, 1, 10);
-		HAL_SPI_Transmit(&hspi3, &color_l, 1, 10);
+	    for(m=0;m<lcddev.width;m++)
+	    {
+		    HAL_SPI_Transmit(&hspi3,&color_h,1,10);
+	    	HAL_SPI_Transmit(&hspi3,&color_l,1,10);
+	    }
 	}
-	LCD_CS_SET;
-}
+	 LCD_CS_SET;
+} 
 
 
 
@@ -232,16 +230,10 @@ void LCD_RESET(void)
  * @parameters :None
  * @retvalue   :None
 ******************************************************************************/	 	 
-//LCD GPIO初始化
-void LCD_GPIOInit(void)
-{
-	// 此函数在当前工程中可能不需要，因为GPIO已经在MX_GPIO_Init中初始化
-	// 但为了与新驱动兼容，保留此函数
-}
-
 void LCD_Init(void)
 {
-	LCD_GPIOInit(); //LCD GPIO初始化
+
+
 	LCD_RESET(); //LCD 复位
 	//*************3.5 ST7796S IPS初始化**********//
 	LCD_WR_REG(0x11);
@@ -390,9 +382,9 @@ void LCD_direction(u8 direction)
 	lcddev.setycmd=0x2B;
 	lcddev.wramcmd=0x2C;
 	lcddev.rramcmd=0x2E;
-	lcddev.dir = direction%4;
+			lcddev.dir = direction%4;
 	switch(lcddev.dir){		  
-		case 0:			  		  
+		case 0:						 	 		
 			lcddev.width=LCD_W;
 			lcddev.height=LCD_H;		
 			LCD_WriteReg(0x36,(1<<3)|(1<<6));
@@ -402,7 +394,7 @@ void LCD_direction(u8 direction)
 			lcddev.height=LCD_W;
 			LCD_WriteReg(0x36,(1<<3)|(1<<5));
 		break;
-		case 2:			  		  
+		case 2:						 	 		
 			lcddev.width=LCD_W;
 			lcddev.height=LCD_H;	
 			LCD_WriteReg(0x36,(1<<3)|(1<<7));
@@ -414,18 +406,6 @@ void LCD_direction(u8 direction)
 		break;	
 		default:break;
 	}		
-}
-
-//LCD显示开
-void LCD_DisplayOn(void)
-{
-	LCD_WR_REG(0x29); //开启显示
-}
-
-//LCD显示关
-void LCD_DisplayOff(void)
-{
-	LCD_WR_REG(0x28); //关闭显示
 }	 
 
 u16 LCD_Read_ID(void)
@@ -486,33 +466,4 @@ u16 LCD_Read_ID(void)
 	lcddev.id = (val[1] << 8) | val[2];
 
 	return lcddev.id;
-}
-
-//设置GRAM指针
-void LCD_WriteRAM(u16 RGB_Code)
-{
-	Lcd_WriteData_16Bit(RGB_Code);
-}
-
-//读取GRAM数据
-u16 LCD_ReadRAM(void)
-{
-	return Lcd_ReadData_16Bit();
-}
-
-//颜色转换函数
-u16 LCD_BGR2RGB(u16 c)
-{
-	u16 r,g,b,rgb;
-	b=(c>>0)&0x1f;
-	g=(c>>5)&0x3f;
-	r=(c>>11)&0x1f;
-	rgb=(b<<11)+(g<<5)+(r<<0);
-	return(rgb);
-}
-
-//设置LCD参数
-void LCD_SetParam(void)
-{
-	// 此函数在当前工程中可能不需要，但为了与新驱动兼容，保留此函数
 }
