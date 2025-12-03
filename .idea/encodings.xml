@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/hardware/LCD/lcd.c" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/hardware/LCD/lcd.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/hardware/TOUCH/ft6336.c" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardware/TOUCH/ft6336.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/hardware/TOUCH/touch.c" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/hardware/TOUCH/touch.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/hardwore/LCD/font.h" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/LCD/lcd.c" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/LCD/lcd.h" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/SPI/SPI.c" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/SPI/SPI.h" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/TOUCH/ctpiic.c" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/TOUCH/ctpiic.h" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/TOUCH/ft6336.c" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/TOUCH/ft6336.h" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/TOUCH/touch.c" charset="GB2312" />
+    <file url="file://$PROJECT_DIR$/hardwore/TOUCH/touch.h" charset="GB2312" />
+  </component>
+</project>

@@ -1,0 +1,92 @@
+Configuration	game
+STM32CubeMX 	6.15.0
+Date	11/21/2025
+MCU	STM32H753ZITx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+DEBUG	Serial Wire	DEBUG_JTCK-SWCLK	PA14 (JTCK/SWCLK)
+DEBUG	Serial Wire	DEBUG_JTMS-SWDIO	PA13 (JTMS/SWDIO)
+I2C1	I2C	I2C1_SCL	PB6
+I2C1	I2C	I2C1_SDA	PB7
+SYS	TIM17	SYS_VS_tim17	VP_SYS_VS_tim17
+TIM5	Internal Clock	TIM5_VS_ClockSourceINT	VP_TIM5_VS_ClockSourceINT
+TIM5	PWM Generation CH1	TIM5_CH1	PA0
+TIM5	PWM Generation CH4	TIM5_CH4	PA3
+USART3	Asynchronous	USART3_RX	PB11
+USART3	Asynchronous	USART3_TX	PB10
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+34	PA0	TIM5_CH1	
+37	PA3	TIM5_CH4	
+46	PB0	GPIO_Output	green_LED
+56	PG0	GPIO_Input	KEY1
+66	PE13	GPIO_Output	I2C_GND
+69	PB10	USART3_TX	
+70	PB11	USART3_RX	
+75	PB14	GPIO_Output	red_LED
+105	PA13 (JTMS/SWDIO)	DEBUG_JTMS-SWDIO	
+109	PA14 (JTCK/SWCLK)	DEBUG_JTCK-SWCLK	
+129	PG14	GPIO_Output	I2C_VDD
+136	PB6	I2C1_SCL	
+137	PB7	I2C1_SDA	
+142	PE1	GPIO_Output	yellow_LED
+PERIPHERALS	MODES	FUNCTIONS	PINS
+DEBUG	Serial Wire	DEBUG_JTCK-SWCLK	PA14 (JTCK/SWCLK)
+DEBUG	Serial Wire	DEBUG_JTMS-SWDIO	PA13 (JTMS/SWDIO)
+I2C1	I2C	I2C1_SCL	PB6
+I2C1	I2C	I2C1_SDA	PB7
+SYS	TIM17	SYS_VS_tim17	VP_SYS_VS_tim17
+TIM5	Internal Clock	TIM5_VS_ClockSourceINT	VP_TIM5_VS_ClockSourceINT
+TIM5	PWM Generation CH1	TIM5_CH1	PA0
+TIM5	PWM Generation CH4	TIM5_CH4	PA3
+USART3	Asynchronous	USART3_RX	PB11
+USART3	Asynchronous	USART3_TX	PB10
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+34	PA0	TIM5_CH1	
+37	PA3	TIM5_CH4	
+46	PB0	GPIO_Output	green_LED
+56	PG0	GPIO_Input	KEY1
+66	PE13	GPIO_Output	I2C_GND
+69	PB10	USART3_TX	
+70	PB11	USART3_RX	
+75	PB14	GPIO_Output	red_LED
+105	PA13 (JTMS/SWDIO)	DEBUG_JTMS-SWDIO	
+109	PA14 (JTCK/SWCLK)	DEBUG_JTCK-SWCLK	
+129	PG14	GPIO_Output	I2C_VDD
+136	PB6	I2C1_SCL	
+137	PB7	I2C1_SDA	
+142	PE1	GPIO_Output	yellow_LED
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : game
+Project Folder : F:\stm32h7test\freertos_h7\text_have_lvgl
+Toolchain / IDE : CMake
+Firmware Package Name and Version : STM32Cube FW_H7 V1.12.1
+
+
+Code Generation Settings : 
+STM32Cube MCU packages and embedded software packs : Copy all used libraries into the project folder
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : 
+
+
+
+
+
