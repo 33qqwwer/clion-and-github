@@ -2,11 +2,29 @@
 #include "lcd.h"
 #include "stdlib.h"
 #include "softspi.h"
+#include "stm32h7xx_hal.h"
 
-//实现delay_ms函数
+// 自定义的delay_ms函数，不依赖HAL库
+// 使用简单的循环实现延迟，确保快速执行
 void delay_ms(uint32_t ms)
 {
-    HAL_Delay(ms);
+	HAL_Delay(ms);
+}
+
+// 带延迟的LCD控制引脚操作函数
+void LCD_CS_set(uint8_t state)
+{
+	state ? LCD_CS_SET : LCD_CS_CLR;
+}
+
+void LCD_RS_set(uint8_t state)
+{
+	state ? LCD_RS_SET : LCD_RS_CLR;
+}
+
+void LCD_RST_set(uint8_t state)
+{
+	state ? LCD_RST_SET : LCD_RST_CLR;
 }
 
     
@@ -27,10 +45,10 @@ u16 DeviceCode;
 ******************************************************************************/
 void LCD_WR_REG(u8 data)
 { 
-   LCD_CS_CLR;     
-	 LCD_RS_CLR;	  
+   LCD_CS_set(0);     
+	 LCD_RS_set(0);	 
    SPI_WriteByte(data);
-   LCD_CS_SET;
+   LCD_CS_set(1);
 }
 
 /*****************************************************************************
@@ -41,20 +59,20 @@ void LCD_WR_REG(u8 data)
  * @retvalue   :None
 ******************************************************************************/
 void LCD_WR_DATA(u8 data)
-{
-   LCD_CS_CLR;
-	 LCD_RS_SET;
+{ 
+   LCD_CS_set(0);
+	 LCD_RS_set(1);
    SPI_WriteByte(data);
-   LCD_CS_SET;
+   LCD_CS_set(1);
 }
 
 u8 LCD_RD_DATA(void)
-{
+{ 
 	 u8 data;
-	 LCD_CS_CLR;
-	 LCD_RS_SET;
+	 LCD_CS_set(0);
+	 LCD_RS_set(1);
 	 data = SPI_ReadByte();
-	 LCD_CS_SET;
+	 LCD_CS_set(1);
 	 return data;
 }
 
@@ -104,25 +122,25 @@ void LCD_ReadRAM_Prepare(void)
  * @retvalue   :None
 ******************************************************************************/	 
 void Lcd_WriteData_16Bit(u16 Data)
-{	
-	 LCD_CS_CLR;
-	 LCD_RS_SET;
+{ 	
+	 LCD_CS_set(0);
+	 LCD_RS_set(1);
    SPI_WriteByte(Data>>8);
    SPI_WriteByte(Data);
-	 LCD_CS_SET;
+	 LCD_CS_set(1);
 }
 
 u16 Lcd_ReadData_16Bit(void)
 {
 	u16 r,g;
-	LCD_CS_CLR;
-	LCD_RS_CLR;	  
+	LCD_CS_set(0);
+	LCD_RS_set(0);	  
 	SPI_WriteByte(lcddev.rramcmd);	
-	LCD_RS_SET;
+	LCD_RS_set(1);
 	SPI_ReadByte();
 	r = SPI_ReadByte();
 	g = SPI_ReadByte();
-	LCD_CS_SET;
+	LCD_CS_set(1);
 	r<<=8;
 	r|=g;
 	return r;
@@ -161,17 +179,17 @@ void LCD_Clear(u16 Color)
 {
   unsigned int i,m;  
 	LCD_SetWindows(0,0,lcddev.width-1,lcddev.height-1);   
-	LCD_CS_CLR;
-	LCD_RS_SET;
+	LCD_CS_set(0);
+	LCD_RS_set(1);
 	for(i=0;i<lcddev.height;i++)
 	{
     for(m=0;m<lcddev.width;m++)
     {	
-			SPI_WriteByte(Color>>8);
-			SPI_WriteByte(Color);
-		}
+		SPI_WriteByte(Color>>8);
+		SPI_WriteByte(Color);
 	}
-	 LCD_CS_SET;
+	}
+	 LCD_CS_set(1);
 } 
 
 /*****************************************************************************
@@ -226,10 +244,10 @@ void LCD_GPIOInit(void)
 ******************************************************************************/	
 void LCD_RESET(void)
 {
-	LCD_RST_CLR;
-	delay_ms(100);	
-	LCD_RST_SET;
-	delay_ms(50);
+	LCD_RST_set(0);  // LCD_RST_CLR + 1ms延迟
+	delay_ms(99);    // 保持总延迟100ms
+	LCD_RST_set(1);  // LCD_RST_SET + 1ms延迟
+	delay_ms(49);    // 保持总延迟50ms
 }
 
 /*****************************************************************************
@@ -333,7 +351,8 @@ void LCD_Init(void)
 	LCD_WR_REG(0x29);
 
 	LCD_direction(USE_HORIZONTAL);//设置LCD显示方向
-	LCD_Clear(WHITE);//清全屏白色
+
+	//LCD_Clear(WHITE);//清全屏白色
 }
  
 /*****************************************************************************
@@ -421,28 +440,29 @@ void LCD_direction(u8 direction)
 u16 LCD_Read_ID(void)
 {
 	u8 i,val[3] = {0};
+	LCD_CS_set(0);  // 先拉低CS，确保所有指令发送到LCD
 	LCD_WR_REG(0xF0);     // Command Set Control
 	LCD_WR_DATA(0xC3);   
 
 	LCD_WR_REG(0xF0);     
 	LCD_WR_DATA(0x96);  
-	LCD_CS_CLR;
+	LCD_CS_set(0);
 	for(i=1;i<4;i++)
 	{
-		LCD_RS_CLR;	  
+		LCD_RS_set(0);	  
 		SPI_WriteByte(0xFB);
-		LCD_RS_SET;
+		LCD_RS_set(1);
 		SPI_WriteByte(0x10+i);
-		LCD_RS_CLR;	  
+		LCD_RS_set(0);	  
 		SPI_WriteByte(0xD3);
-		LCD_RS_SET;
+		LCD_RS_set(1);
 		val[i-1] = SPI_ReadByte();
-		LCD_RS_CLR;	  
+		LCD_RS_set(0);
 		SPI_WriteByte(0xFB);
-		LCD_RS_SET;
+		LCD_RS_set(1);
 		SPI_WriteByte(0x00);	
 	}
-	LCD_CS_SET;
+	LCD_CS_set(1);
 	LCD_WR_REG(0xF0);     // Command Set Control
 	LCD_WR_DATA(0x3C);   
 	LCD_WR_REG(0xF0);     

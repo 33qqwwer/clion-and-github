@@ -31,6 +31,7 @@
 #include "queue.h"
 #include "lvgl.h"
 #include "lcd.h"
+#include "softSPI.h"
 #include "lv_port_disp.h"
 // "lv_port_indev.h"
 #include "lvgl_demo.h"
@@ -52,6 +53,19 @@ uint8_t g_queuecont=0;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+
+// 100MHz主频下的us延迟（替换官方delay_us）
+void delay_us(uint32_t us)
+{
+  uint32_t ticks = us * (SystemCoreClock / 1000000); // 100MHz→ticks=us×100
+  uint32_t start = SysTick->VAL;
+  if (start > ticks) {
+    while ((start - SysTick->VAL) < ticks);
+  } else {
+    while ((0xFFFFFF - SysTick->VAL + start) < ticks);
+  }
+  __NOP();
+}
 
 /* USER CODE END PM */
 
@@ -136,7 +150,8 @@ void Register_queueHandle(void* QueueHandle)
 
 extern void car_game(void );
 /* USER CODE END 0 */
-
+// 测试用发送数据（选特征值，如0x55、0xAA、0x12等）
+uint8_t test_data[] = {0x55, 0xAA, 0x12, 0x34, 0xAB, 0xCD};
 /**
   * @brief  The application entry point.
   * @retval int
@@ -175,9 +190,40 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   //LVGL的初始化
-  printf("fputc!!!!\r\n");
- // HAL_Delay(400);
-  //LCD_Init();
+  printf("开始!!!!\r\n");
+  delay_us(1000);
+  printf("结束!!!!\r\n");
+  HAL_Delay(400);
+
+  /* USER CODE BEGIN 2 */
+  printf("===== 软SPI回环测试开始 =====\r\n");
+
+  // 遍历测试数据，自发自收
+  for(uint8_t i=0; i<sizeof(test_data); i++)
+  {
+
+    uint8_t send_byte = test_data[i];
+    uint8_t recv_byte = 0;
+
+    // 1. 发送字节（软SPI写）
+    SPI_WriteByte(send_byte);
+    // 2. 读取字节（软SPI读，因MOSI=MISO短接，应读到发送值）
+    recv_byte = SPI_ReadByte();
+
+    // 3. 打印结果
+    printf("发送: 0x%02X → 接收: 0x%02X → %s\r\n",
+           send_byte, recv_byte,
+           (send_byte == recv_byte) ? "成功" : "失败");
+  }
+
+  printf("===== 软SPI回环测试结束 =====\r\n");
+  /* USER CODE END 2 */
+
+
+
+  LCD_Init();
+  uint16_t ID=LCD_Read_ID();
+  printf("%d,",ID );
  // lv_init();
   //lv_port_disp_init();
   //lv_port_indev_init();
@@ -344,8 +390,9 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line number, ex: printf("Wrong parameters value: file %s on line %d\n", file, line) */
   /* USER CODE END 6 */
 }
+
+
 #endif /* USE_FULL_ASSERT */

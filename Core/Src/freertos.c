@@ -160,7 +160,6 @@ void Start_LEDTask(void *argument)
   /* Infinite loop */
 
 
-  LCD_Clear(BLUE);
   for(;;)
   {
     HAL_GPIO_TogglePin(yellow_LED_GPIO_Port, yellow_LED_Pin);
@@ -182,7 +181,7 @@ void Start_LEDTask(void *argument)
 
 
 uint8_t ID[4];
-uint8_t massage[]="hello\r\n";
+
 /* USER CODE END Header_Start_UARTTask */
 void Start_UARTTask(void *argument)
 {
@@ -204,11 +203,11 @@ void Start_UARTTask(void *argument)
 
   for(;;)
   {
-    printf("fputc!!!!\r\n");
-    printf("成功！\r\n");
-
-    // 方式2：使用 printf（会间接调用 fputc）
-    printf("Hello World!\r\n");
+    // printf("__io_putchar!!!!\r\n");
+    // printf("成功！\r\n");
+    //
+    // // 方式2：使用 printf（会间接调用 fputc）
+    // printf("Hello World!\r\n");
 
     osDelay(500);  // 延迟可保留，此时不会再导致冲突
   }
