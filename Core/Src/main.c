@@ -21,7 +21,6 @@
 #include "cmsis_os.h"
 #include "dma.h"
 #include "i2c.h"
-#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -36,12 +35,18 @@
 // "lv_port_indev.h"
 #include "lvgl_demo.h"
 #include <string.h>
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-
+// 重定向fputc，printf会调用此函数发送字符
+int fputc(int ch, FILE *f) {
+  // 阻塞发送单个字符（ch强制转为uint8_t）
+  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 2000);
+  return ch; // 必须返回ch，否则printf可能异常
+}
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -124,6 +129,18 @@ void Register_queueHandle(void* QueueHandle)
 //      HAL_GPIO_TogglePin(green_LED_GPIO_Port, green_LED_Pin);
 //    }
 //  }
+
+
+
+
+
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
+
+
+
+
 extern void car_game(void );
 /* USER CODE END 0 */
 
@@ -160,12 +177,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_USART3_UART_Init();
   MX_TIM5_Init();
-  MX_SPI3_Init();
   MX_I2C2_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   //LVGL的初始化
+  printf("fputc!!!!\r\n");
   HAL_Delay(500);
   LCD_Init();
  // lv_init();
@@ -254,8 +271,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-/*);
-
 
 /* USER CODE END 4 */
 

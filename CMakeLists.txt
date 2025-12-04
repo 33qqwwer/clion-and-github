@@ -81,6 +81,8 @@ add_executable(${CMAKE_PROJECT_NAME}
         Middlewares/Third_Party/LVGL/GUI_APP/demos/stress/lv_demo_stress.c
         Middlewares/Third_Party/LVGL/GUI/lvgl/examples/porting/osal/lv_example_osal.c
         Middlewares/Third_Party/LVGL/GUI/lvgl/examples/porting/osal/lv_example_osal.h
+        hardware/SPI/softSPI.c
+        hardware/SPI/softSPI.h
         # lv_tick_inc 实现
 )
 
@@ -104,6 +106,10 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         Core
         Core/Src
         hardware/LCD
+        hardware/SPI
+        hardware/TOUCH
+
+
         Middlewares/Third_Party/LVGL/GUI
 
         Middlewares/Third_Party/LVGL/GUI/lvgl

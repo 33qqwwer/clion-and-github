@@ -180,27 +180,28 @@ void Start_LEDTask(void *argument)
 
 
 uint8_t ID[4];
+uint8_t massage[]="hello\r\n";
 /* USER CODE END Header_Start_UARTTask */
 void Start_UARTTask(void *argument)
 {
   /* USER CODE BEGIN Start_UARTTask */
-  //  uint16_t temp= LCD_Read_ID();
-  //  ID[0]=temp>>8;
-  //  ID[1]=temp;
-  // ID[2]='\r';
-  // ID[3]='\n';
-  // extern uint8_t receiveData[30];
-
+   uint16_t temp= LCD_Read_ID();
+   ID[0]=temp>>8;
+   ID[1]=temp;
+  ID[2]='\r';
+  ID[3]='\n';
+  extern uint8_t receiveData[30];
+  HAL_UART_Transmit(&huart3,ID,sizeof(ID),100);
 
   /*创建队列*/
   //QueueHandle_t uartQueue=xQueueCreate(10,sizeof(ID));
   /* Infinite loop */
-  //HAL_UART_Transmit(&huart3,ID,sizeof(ID),100);
+
   for(;;)
   {
-   // HAL_UART_Transmit(&huart3,massage,sizeof(massage),100);
-
-    osDelay(200);  // 延迟可保留，此时不会再导致冲突
+    printf("fputc!!!!\r\n");
+    HAL_UART_Transmit(&huart3,massage,sizeof(massage),100);
+    osDelay(500);  // 延迟可保留，此时不会再导致冲突
   }
 
   /* USER CODE END Start_UARTTask */
