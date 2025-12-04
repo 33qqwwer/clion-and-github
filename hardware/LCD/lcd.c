@@ -183,14 +183,38 @@ void LCD_Clear(u16 Color)
 ******************************************************************************/	
 void LCD_GPIOInit(void)
 {
-    // LCD相关引脚已经在gpio.c的MX_GPIO_Init函数中初始化
-    // 这里不再重复初始化
-    // 确保引脚初始状态正确
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    /* 启用LCD相关GPIO端口时钟 */
+    __HAL_RCC_GPIOC_CLK_ENABLE(); // LCD_CS引脚
+    __HAL_RCC_GPIOG_CLK_ENABLE(); // LCD_RST引脚
+    __HAL_RCC_GPIOD_CLK_ENABLE(); // LCD_RS引脚
+
+    /* 设置LCD引脚初始输出电平 */
     HAL_GPIO_WritePin(LCD_RST_GPIO_Port, LCD_RST_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(SPI3_SCK_GPIO_Port, SPI3_SCK_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(SPI3_MOSI_GPIO_Port, SPI3_MOSI_Pin, GPIO_PIN_RESET);
+
+    /* 配置LCD_CS引脚为推挽输出模式 */
+    GPIO_InitStruct.Pin = LCD_CS_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(LCD_CS_GPIO_Port, &GPIO_InitStruct);
+
+    /* 配置LCD_RST引脚为推挽输出模式 */
+    GPIO_InitStruct.Pin = LCD_RST_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(LCD_RST_GPIO_Port, &GPIO_InitStruct);
+
+    /* 配置LCD_RS引脚为推挽输出模式 */
+    GPIO_InitStruct.Pin = LCD_RS_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(LCD_RS_GPIO_Port, &GPIO_InitStruct);
 }
 
 /*****************************************************************************

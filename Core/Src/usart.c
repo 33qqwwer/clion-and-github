@@ -142,4 +142,21 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
+/* 实现__io_putchar函数，将字符发送到USART3 */
+int __io_putchar(int ch)
+{
+  /* 将字符发送到USART3 */
+  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 1000);
+  return ch;
+}
+
+/* 实现__io_getchar函数，从USART3接收字符 */
+int __io_getchar(void)
+{
+  uint8_t ch;
+  /* 从USART3接收字符 */
+  HAL_UART_Receive(&huart3, &ch, 1, 1000);
+  return (int)ch;
+}
+
 /* USER CODE END 1 */

@@ -4,6 +4,14 @@
 
 #include "stdlib.h"
 #include "main.h"
+
+// LCD引脚定义(在main.h文件里也有同样的定义，最好不要重复，只是测试的时候好看用)
+#define LCD_RST_Pin GPIO_PIN_0
+#define LCD_RST_GPIO_Port GPIOG
+#define LCD_CS_Pin GPIO_PIN_9
+#define LCD_CS_GPIO_Port GPIOC
+#define LCD_RS_Pin GPIO_PIN_1
+#define LCD_RS_GPIO_Port GPIOD
 //LCD需要的参数
 typedef struct  
 {										    
@@ -52,8 +60,8 @@ extern u16  BACK_COLOR; //背景颜色.默认白色
 #define BLACK      	0x0000	  
 #define BLUE       	0x001F  
 #define BRED        0XF81F
-#define GRED 			 	0XFFE0
-#define GBLUE			 	0X07FF
+#define GRED 		0XFFE0
+#define GBLUE		0X07FF
 #define RED         0xF800
 #define MAGENTA     0xF81F
 #define GREEN       0x07E0

@@ -40,13 +40,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
-// 重定向fputc，printf会调用此函数发送字符
-int fputc(int ch, FILE *f) {
-  // 阻塞发送单个字符（ch强制转为uint8_t）
-  HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 2000);
-  return ch; // 必须返回ch，否则printf可能异常
-}
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -183,8 +176,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   //LVGL的初始化
   printf("fputc!!!!\r\n");
-  HAL_Delay(500);
-  LCD_Init();
+ // HAL_Delay(400);
+  //LCD_Init();
  // lv_init();
   //lv_port_disp_init();
   //lv_port_indev_init();

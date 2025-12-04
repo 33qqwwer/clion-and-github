@@ -159,6 +159,8 @@ void Start_LEDTask(void *argument)
   /* USER CODE BEGIN Start_LEDTask */
   /* Infinite loop */
 
+
+  LCD_Clear(BLUE);
   for(;;)
   {
     HAL_GPIO_TogglePin(yellow_LED_GPIO_Port, yellow_LED_Pin);
@@ -185,13 +187,16 @@ uint8_t massage[]="hello\r\n";
 void Start_UARTTask(void *argument)
 {
   /* USER CODE BEGIN Start_UARTTask */
-   uint16_t temp= LCD_Read_ID();
-   ID[0]=temp>>8;
-   ID[1]=temp;
-  ID[2]='\r';
-  ID[3]='\n';
-  extern uint8_t receiveData[30];
-  HAL_UART_Transmit(&huart3,ID,sizeof(ID),100);
+  // 添加短暂延迟，确保串口硬件稳定后再发送数据
+  osDelay(100);
+  
+  //  uint16_t temp= LCD_Read_ID();
+  //  ID[0]=temp>>8;
+  //  ID[1]=temp;
+  // ID[2]='\r';
+  // ID[3]='\n';
+  // extern uint8_t receiveData[30];
+  // HAL_UART_Transmit(&huart3,ID,sizeof(ID),100);
 
   /*创建队列*/
   //QueueHandle_t uartQueue=xQueueCreate(10,sizeof(ID));
@@ -200,7 +205,11 @@ void Start_UARTTask(void *argument)
   for(;;)
   {
     printf("fputc!!!!\r\n");
-    HAL_UART_Transmit(&huart3,massage,sizeof(massage),100);
+    printf("成功！\r\n");
+
+    // 方式2：使用 printf（会间接调用 fputc）
+    printf("Hello World!\r\n");
+
     osDelay(500);  // 延迟可保留，此时不会再导致冲突
   }
 
