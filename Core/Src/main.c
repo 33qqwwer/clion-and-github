@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include "dma.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
@@ -183,47 +182,44 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM5_Init();
-  MX_I2C2_Init();
   MX_USART3_UART_Init();
+  MX_I2C1_Init();
+  //SPI_GPIO_Init();
+
   /* USER CODE BEGIN 2 */
   //LVGL的初始化
   printf("开始!!!!\r\n");
   delay_us(1000);
+  LCD_Init();
   printf("结束!!!!\r\n");
   HAL_Delay(400);
 
   /* USER CODE BEGIN 2 */
-  printf("===== 软SPI回环测试开始 =====\r\n");
-
-  // 遍历测试数据，自发自收
-  for(uint8_t i=0; i<sizeof(test_data); i++)
-  {
-
-    uint8_t send_byte = test_data[i];
-    uint8_t recv_byte = 0;
-
-    // 1. 发送字节（软SPI写）
-    SPI_WriteByte(send_byte);
-    // 2. 读取字节（软SPI读，因MOSI=MISO短接，应读到发送值）
-    recv_byte = SPI_ReadByte();
-
-    // 3. 打印结果
-    printf("发送: 0x%02X → 接收: 0x%02X → %s\r\n",
-           send_byte, recv_byte,
-           (send_byte == recv_byte) ? "成功" : "失败");
-  }
-
-  printf("===== 软SPI回环测试结束 =====\r\n");
+  // printf("===== 软SPI回环测试开始 =====\r\n");
+  //
+  // // 遍历测试数据，自发自收
+  // for(uint8_t i=0; i<sizeof(test_data); i++)
+  // {
+  //
+  //   uint8_t send_byte = test_data[i];
+  //   uint8_t recv_byte = 0;
+  //   recv_byte=SPI_WriteReadByte(send_byte);
+  //   // 3. 打印结果
+  //   printf("发送: 0x%02X → 接收: 0x%02X → %s\r\n",
+  //          send_byte, recv_byte,
+  //          (send_byte == recv_byte) ? "成功" : "失败");
+  // }
+  //
+  // printf("===== 软SPI回环测试结束 =====\r\n");
   /* USER CODE END 2 */
 
   /* Init scheduler */
-  // osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
-  // MX_FREERTOS_Init();
-  //
-  // /* Start scheduler */
-  // osKernelStart();
+  osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
@@ -232,8 +228,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    HAL_GPIO_WritePin(SPI3_MOSI_GPIO_Port,SPI3_MOSI_Pin,GPIO_PIN_SET);
-    HAL_GPIO_WritePin(text_GPIO_Port,text_Pin,GPIO_PIN_SET);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

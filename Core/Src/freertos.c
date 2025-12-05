@@ -164,7 +164,11 @@ void Start_LEDTask(void *argument)
   {
     HAL_GPIO_TogglePin(yellow_LED_GPIO_Port, yellow_LED_Pin);
     HAL_GPIO_WritePin(green_LED_GPIO_Port, green_LED_Pin, GPIO_PIN_SET);
-
+   // HAL_GPIO_WritePin(SPI1_MISO_GPIO_Port, SPI1_MISO_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(SPI1_MOSI_GPIO_Port, SPI1_MOSI_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(LCD_RST_GPIO_Port, LCD_RST_Pin, GPIO_PIN_SET);
 
      vTaskDelay(100);
     osDelay(1);
@@ -203,7 +207,7 @@ void Start_UARTTask(void *argument)
 
   for(;;)
   {
-    HAL_GPIO_WritePin(SPI3_MOSI_GPIO_Port, SPI3_MOSI_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(SPI1_MOSI_GPIO_Port, SPI1_MOSI_Pin, GPIO_PIN_SET);
 
     // printf("__io_putchar!!!!\r\n");
     // printf("成功！\r\n");

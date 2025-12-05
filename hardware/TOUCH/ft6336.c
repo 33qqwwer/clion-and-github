@@ -20,7 +20,7 @@ extern u8 touch_flag;
 u8 FT6336_WR_Reg(u16 reg,u8 *buf,u8 len)
 {
 	u8 ret=0;
-	ret=HAL_I2C_Mem_Write(&hi2c2,FT_ADDRESS,reg,sizeof(reg),buf,len,200);
+	ret=HAL_I2C_Mem_Write(&hi2c1,FT_ADDRESS,reg,sizeof(reg),buf,len,200);
 	return ret;
 }
 
@@ -35,7 +35,7 @@ u8 FT6336_WR_Reg(u16 reg,u8 *buf,u8 len)
 ******************************************************************************/
 void FT6336_RD_Reg(u16 reg,u8 *buf,u8 len)
 {
-	HAL_I2C_Mem_Read(&hi2c2,FT_ADDRESS,reg,sizeof(reg),buf,len,200);
+	HAL_I2C_Mem_Read(&hi2c1,FT_ADDRESS,reg,sizeof(reg),buf,len,200);
 }
 
 /*****************************************************************************

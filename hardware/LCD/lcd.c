@@ -204,9 +204,8 @@ void LCD_GPIOInit(void)
     GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     /* 启用LCD相关GPIO端口时钟 */
-    __HAL_RCC_GPIOC_CLK_ENABLE(); // LCD_CS引脚
-    __HAL_RCC_GPIOG_CLK_ENABLE(); // LCD_RST引脚
-    __HAL_RCC_GPIOD_CLK_ENABLE(); // LCD_RS引脚
+    __HAL_RCC_GPIOA_CLK_ENABLE(); // LCD_CS引脚
+    __HAL_RCC_GPIOC_CLK_ENABLE(); // LCD_RST和LCD_RS引脚
 
     /* 设置LCD引脚初始输出电平 */
     HAL_GPIO_WritePin(LCD_RST_GPIO_Port, LCD_RST_Pin, GPIO_PIN_SET);
@@ -352,7 +351,7 @@ void LCD_Init(void)
 
 	LCD_direction(USE_HORIZONTAL);//设置LCD显示方向
 
-	//LCD_Clear(WHITE);//清全屏白色
+	LCD_Clear(WHITE);//清全屏白色
 }
  
 /*****************************************************************************

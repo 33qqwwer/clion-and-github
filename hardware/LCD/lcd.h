@@ -5,13 +5,13 @@
 #include "stdlib.h"
 #include "main.h"
 
-// LCD引脚定义(在main.h文件里也有同样的定义，最好不要重复，只是测试的时候好看用)
+// LCD引脚定义(从main.h导入)
 #define LCD_RST_Pin GPIO_PIN_0
-#define LCD_RST_GPIO_Port GPIOG
-#define LCD_CS_Pin GPIO_PIN_9
-#define LCD_CS_GPIO_Port GPIOC
-#define LCD_RS_Pin GPIO_PIN_1
-#define LCD_RS_GPIO_Port GPIOD
+#define LCD_RST_GPIO_Port GPIOC
+#define LCD_CS_Pin GPIO_PIN_3
+#define LCD_CS_GPIO_Port GPIOA
+#define LCD_RS_Pin GPIO_PIN_3
+#define LCD_RS_GPIO_Port GPIOC
 //LCD需要的参数
 typedef struct  
 {										    
