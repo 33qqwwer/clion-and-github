@@ -1,7 +1,7 @@
 #include "softSPI.h"
 
 // ==================== 核心：100MHz下精准微秒延迟函数 ====================
-void SoftSPI_DelayUs(uint32_t us)
+static void SoftSPI_DelayUs(uint32_t us)
 {
     // SystemCoreClock需确保为100MHz（在SystemClock_Config中配置）
     uint32_t ticks = us * (SystemCoreClock / 1000000);  // 100MHz → ticks = us * 100
@@ -32,66 +32,66 @@ static inline void MOSI_Set(uint8_t state)
   // SoftSPI_DelayUs(SOFTSPI_DELAY_US);  // 精准微秒延迟
 }
 
-// ==================== 修复：写字节函数（标准LCD SPI时序） ====================
-// 时序：SCK低电平 → 设置MOSI → SCK高电平（LCD上升沿采样）→ 循环8位
-void SPI_WriteByte(uint8_t Byte)
-{
-    uint8_t i;
-    SCK_Set(0); // 初始SCK拉低
-    for (i = 0; i < 8; i++)
-    {
-        // 1. SCK先拉低（准备输出MOSI）
-        SCK_Set(0);
-        // 2. 设置MOSI（最高位先行）
-        MOSI_Set((Byte & 0x80) ? 1 : 0);
-        Byte <<= 1;
-        // 3. SCK拉高（LCD上升沿采样MOSI）
-        SCK_Set(1);
-    }
-    SCK_Set(0); // 结束后SCK拉低，避免残留电平
-}
+// // ==================== 修复：写字节函数（标准LCD SPI时序） ====================
+// // 时序：SCK低电平 → 设置MOSI → SCK高电平（LCD上升沿采样）→ 循环8位
+// void SPI_WriteByte(uint8_t Byte)
+// {
+//     uint8_t i;
+//     SCK_Set(0); // 初始SCK拉低
+//     for (i = 0; i < 8; i++)
+//     {
+//         // 1. SCK先拉低（准备输出MOSI）
+//         SCK_Set(0);
+//         // 2. 设置MOSI（最高位先行）
+//         MOSI_Set((Byte & 0x80) ? 1 : 0);
+//         Byte <<= 1;
+//         // 3. SCK拉高（LCD上升沿采样MOSI）
+//         SCK_Set(1);
+//     }
+//     SCK_Set(0); // 结束后SCK拉低，避免残留电平
+// }
+//
+// // ==================== 修复：读字节函数（同步MISO采样） ====================
+// // 时序：SCK拉高 → 采样MISO → SCK拉低 → 循环8位
+// uint8_t SPI_ReadByte(void)
+// {
+//     uint8_t value = 0, i;
+//     SCK_Set(0); // 初始SCK拉低
+//     for (i = 0; i < 8; i++)
+//     {
+//         value <<= 1; // 左移，准备接收下一位
+//         // 1. SCK拉高（外设输出MISO）
+//         SCK_Set(1);
+//         // 2. 采样MISO（此时MISO电平稳定）
+//         if (SPI_MISO_READ == GPIO_PIN_SET)
+//         {
+//             value |= 0x01;
+//         }
+//         // 3. SCK拉低，完成一个周期
+//         SCK_Set(0);
+//     }
+//     return value;
+// }
 
-// ==================== 修复：读字节函数（同步MISO采样） ====================
-// 时序：SCK拉高 → 采样MISO → SCK拉低 → 循环8位
-uint8_t SPI_ReadByte(void)
-{
-    uint8_t value = 0, i;
-    SCK_Set(0); // 初始SCK拉低
-    for (i = 0; i < 8; i++)
-    {
-        value <<= 1; // 左移，准备接收下一位
-        // 1. SCK拉高（外设输出MISO）
-        SCK_Set(1);
-        // 2. 采样MISO（此时MISO电平稳定）
-        if (SPI_MISO_READ == GPIO_PIN_SET)
-        {
-            value |= 0x01;
-        }
-        // 3. SCK拉低，完成一个周期
-        SCK_Set(0);
-    }
-    return value;
-}
-
-
-uint8_t SPI_WriteReadByte(uint8_t tx_byte)
-{
-    uint8_t rxdata = 0,value=0;
-    SCK_Set(0);
-    for (uint8_t i=0;i<8;i++)
-    {
-        value=(tx_byte<<i) & 0x80;
-        MOSI_Set(value ? 1 :0);
-        SCK_Set(1);
-        if (SPI_MISO_READ==1)
-        {
-            rxdata |= 0x80>>i;
-        }
-        SCK_Set(0); // 结束后拉低
-    }
-
-    return rxdata;
-}
+//
+// uint8_t SPI_WriteReadByte(uint8_t tx_byte)
+// {
+//     uint8_t rxdata = 0,value=0;
+//     SCK_Set(0);
+//     for (uint8_t i=0;i<8;i++)
+//     {
+//         value=(tx_byte<<i) & 0x80;
+//         MOSI_Set(value ? 1 :0);
+//         SCK_Set(1);
+//         if (SPI_MISO_READ==1)
+//         {
+//             rxdata |= 0x80>>i;
+//         }
+//         SCK_Set(0); // 结束后拉低
+//     }
+//
+//     return rxdata;
+// }
 // ==================== SPI GPIO初始化（适配你的引脚+优化配置） ====================
 void SPI_GPIO_Init(void)
 {

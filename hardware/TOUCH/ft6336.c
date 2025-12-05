@@ -4,7 +4,7 @@
 #include "i2c.h"
 #include "string.h"
 #include "lcd.h"
-
+#include "stdio.h"
 extern u8 touch_flag;
 
 /*****************************************************************************
@@ -20,7 +20,7 @@ extern u8 touch_flag;
 u8 FT6336_WR_Reg(u16 reg,u8 *buf,u8 len)
 {
 	u8 ret=0;
-	ret=HAL_I2C_Mem_Write(&hi2c1,FT_ADDRESS,reg,sizeof(reg),buf,len,200);
+	ret=HAL_I2C_Mem_Write(&hi2c1,FT_ADDRESS,reg,I2C_MEMADD_SIZE_8BIT,buf,len,200);
 	return ret;
 }
 
@@ -35,7 +35,7 @@ u8 FT6336_WR_Reg(u16 reg,u8 *buf,u8 len)
 ******************************************************************************/
 void FT6336_RD_Reg(u16 reg,u8 *buf,u8 len)
 {
-	HAL_I2C_Mem_Read(&hi2c1,FT_ADDRESS,reg,sizeof(reg),buf,len,200);
+	HAL_I2C_Mem_Read(&hi2c1,FT_ADDRESS,reg,I2C_MEMADD_SIZE_8BIT,buf,len,200);
 }
 
 /*****************************************************************************
@@ -52,41 +52,46 @@ u8 FT6336_Init(void)
 
 	FT_RST(0);				//复位
 	HAL_Delay(10);
- 	FT_RST(1);				//释放复位
+	FT_RST(1);				//释放复位
 	HAL_Delay(500);
-//	temp[0]=0;
-//	FT6336_WR_Reg(FT_DEVIDE_MODE,temp,1);	//进入正常操作模式
-//	FT6336_WR_Reg(FT_ID_G_MODE,temp,1);		//查询模式
-	//temp[0]=40;								//触摸有效值，22，越小越灵敏
-	//FT6336_WR_Reg(FT_ID_G_THGROUP,temp,1);	//设置触摸有效值
+
+	// 1. 初始化FT6336工作模式
+	temp[0]=0;
+	FT6336_WR_Reg(FT_DEVIDE_MODE,temp,1);	//正常操作模式
+	FT6336_WR_Reg(FT_ID_G_MODE,temp,1);		//查询模式
+	temp[0]=40;								//触摸灵敏度（越小越灵敏）
+	FT6336_WR_Reg(FT_ID_G_THGROUP,temp,1);
+
+	// 2. 校验核心ID（Vendor ID固定为0x11）
 	FT6336_RD_Reg(FT_ID_G_FOCALTECH_ID,&temp[0],1);
 	if(temp[0]!=0x11)
 	{
+		printf("FT6336 Vendor ID Error:0x%02X\r\n",temp[0]);
 		return 1;
 	}
-	FT6336_RD_Reg(FT_ID_G_CIPHER_MID,&temp[0],2);
+
+	// 3. 校验芯片型号（FT6336的MID=0x26，HID=0x64）
+	FT6336_RD_Reg(FT_ID_G_CIPHER_MID,&temp[0],1);
 	if(temp[0]!=0x26)
 	{
-		return 1;
-	}
-	if((temp[1]!=0x00)&&(temp[1]!=0x01)&&(temp[1]!=0x02))
-	{
+		printf("FT6336 MID Error:0x%02X\r\n",temp[0]);
 		return 1;
 	}
 	FT6336_RD_Reg(FT_ID_G_CIPHER_HIGH,&temp[0],1);
 	if(temp[0]!=0x64)
 	{
+		printf("FT6336 HID Error:0x%02X\r\n",temp[0]);
 		return 1;
 	}
-//	temp[0]=12;								//激活周期，不能小于12，最大14
-//	FT6336_WR_Reg(FT_ID_G_PERIODACTIVE,temp,1);
-	//读取版本号，参考值：0x3003
-//	FT6336_RD_Reg(FT_ID_G_LIB_VERSION,&temp[0],2);
-//	if(temp[0]==0X10&&temp[1]==0X01)//版本:0X3003
-//	{
-//		printf("CTP ID:%x\r\n",((u16)temp[0]<<8)+temp[1]);
-//		return 0;
-//	}
+
+	// 4. 读取芯片版本（仅打印，不校验）
+	FT6336_RD_Reg(FT_ID_G_LIB_VERSION,&temp[0],2);
+	printf("FT6336 Version:0x%04X\r\n",((u16)temp[0]<<8)+temp[1]);
+
+	// 5. 设置激活周期（12ms，范围12~14ms）
+	temp[0]=12;
+	FT6336_WR_Reg(FT_ID_G_PERIODACTIVE,temp,1);
+
 	return 0;
 }
 
@@ -103,81 +108,45 @@ const u16 FT6336_TPX_TBL[2]={FT_TP1_REG,FT_TP2_REG};
 ******************************************************************************/
 
 
-uint8_t FT6336_Scan(void)
-{
-
-
-	return 0;
-}
-
-// u8 FT6336_Scan(void)
+// uint8_t FT6336_Scan(void)
 // {
-// 	u8 buf[4];
-// 	u8 i=0;
-// 	u8 res=0;
-// 	u8 temp;
-// 	u8 mode;
-// 	static u8 t=0;//控制查询间隔,从而降低CPU占用率
-// 	t++;
-// 	if((t%10)==0||t<10)//空闲时,每进入10次CTP_Scan函数才检测1次,从而节省CPU使用率
-// 	{
-// 		FT6336_RD_Reg(FT_REG_NUM_FINGER,&mode,1);//读取触摸点的状态
-// 		if(mode&&(mode<3))
-// 		{
-// 			temp=0XFF<<mode;//将点的个数转换为1的位数,匹配tp_dev.sta定义
-// 			tp_dev.sta=(~temp)|TP_PRES_DOWN|TP_CATH_PRES;
-// 			for(i=0;i<CTP_MAX_TOUCH;i++)
-// 			{
-// 				FT6336_RD_Reg(FT6336_TPX_TBL[i],buf,4);	//读取XY坐标值
-// 				if(tp_dev.sta&(1<<i))	//触摸有效?
-// 				{
-// 					switch(lcddev.dir)
-// 					{
-// 						case 0:
-// 							tp_dev.x[i]=((u16)(buf[0]&0X0F)<<8)+buf[1];
-// 							tp_dev.y[i]=((u16)(buf[2]&0X0F)<<8)+buf[3];
-// 							break;
-// 						case 1:
-// 							tp_dev.y[i]=lcddev.height-(((u16)(buf[0]&0X0F)<<8)+buf[1]);
-// 							tp_dev.x[i]=((u16)(buf[2]&0X0F)<<8)+buf[3];
-// 							break;
-// 						case 2:
-// 							tp_dev.x[i]=lcddev.width-(((u16)(buf[0]&0X0F)<<8)+buf[1]);
-// 							tp_dev.y[i]=lcddev.height-(((u16)(buf[2]&0X0F)<<8)+buf[3]);
-// 							break;
-// 						case 3:
-// 							tp_dev.y[i]=((u16)(buf[0]&0X0F)<<8)+buf[1];
-// 							tp_dev.x[i]=lcddev.width-(((u16)(buf[2]&0X0F)<<8)+buf[3]);
-// 							break;
-// 					}
-// 					//if((buf[0]&0XF0)!=0X80)tp_dev.x[i]=tp_dev.y[i]=0;//必须是contact事件，才认为有效
-// 					//printf("x[%d]:%d,y[%d]:%d\r\n",i,tp_dev.x[i],i,tp_dev.y[i]);
-// 				}
-// 			}
-// 			res=1;
-// 			if(tp_dev.x[0]==0 && tp_dev.y[0]==0)mode=0;	//读到的数据都是0,则忽略此次数据
-// 			t=0;		//触发一次,则会最少连续监测10次,从而提高命中率
-// 		}
-// 	}
-// 	if(mode==0)//无触摸点按下
-// 	{
-// 		if(tp_dev.sta&TP_PRES_DOWN)	//之前是被按下的
-// 		{
-// 			tp_dev.sta&=~(1<<7);	//标记按键松开
-// 		}else						//之前就没有被按下
-// 		{
-// 			tp_dev.x[0]=0xffff;
-// 			tp_dev.y[0]=0xffff;
-// 			tp_dev.sta&=0XE0;	//清除点有效标记
-// 		}
-// 	}
-// 	if(t>240)t=10;//重新从10开始计数
-// 	return res;
+//
+//
+// 	return 0;
 // }
- 
 
+//成功返回1，失败返回0
+u8 FT6336_Scan(void)
+{
+	u8 buf[4];
+	u8 mode = 0;
+	// 1. 每次都读触摸点数量
+	FT6336_RD_Reg(FT_REG_NUM_FINGER,&mode,1);
+	//printf("Touch Num: %d\r\n", mode); // 打印触摸点数（关键！）
 
+	if(mode >=1 && mode <=2)
+	{
+		// 2. 读第一个触摸点
+		FT6336_RD_Reg(FT_TP1_REG, buf, 4);
+		// 3. 直接解析原始坐标（不转换）
+		u16 x = ((u16)(buf[0]&0x0F)<<8) + buf[1];
+		u16 y = ((u16)(buf[2]&0x0F)<<8) + buf[3];
+		printf("Raw_X:%d, Raw_Y:%d\r\n", x, y); // 打印原始坐标
 
+		// 4. 强制赋值tp_dev
+		tp_dev.x[0] = x;
+		tp_dev.y[0] = y;
+		tp_dev.sta = TP_PRES_DOWN | TP_CATH_PRES | mode;
+		return 1;
+	}
+	else
+	{
+		tp_dev.sta = 0;
+		tp_dev.x[0] = 0xFFFF;
+		tp_dev.y[0] = 0xFFFF;
+		return 0;
+	}
+}
 
 
 

@@ -4,6 +4,7 @@
 
 #include "stdlib.h"
 #include "main.h"
+#include "spi.h"
 
 // LCD引脚定义(从main.h导入)
 #define LCD_RST_Pin GPIO_PIN_0
@@ -89,7 +90,8 @@ void LCD_DisplayOn(void);
 void LCD_DisplayOff(void);
 void LCD_Clear(u16 Color);	 
 void LCD_SetCursor(u16 Xpos, u16 Ypos);
-void LCD_DrawPoint(u16 x,u16 y);//画点
+void LCD_DrawPoint(u16 x,u16 y,uint16_t color );//画点
+void LCD_DrawLine_Color(u16 x_start, u16 x_end, u16 y, u16 *color_buf, u16 len);
 u16  LCD_ReadPoint(u16 x,u16 y); //读点
 void LCD_DrawLine(u16 x1, u16 y1, u16 x2, u16 y2);
 void LCD_DrawRectangle(u16 x1, u16 y1, u16 x2, u16 y2);		   

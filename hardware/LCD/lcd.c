@@ -1,14 +1,17 @@
 
 #include "lcd.h"
-#include "stdlib.h"
-#include "softspi.h"
-#include "stm32h7xx_hal.h"
 
+
+#include "stdlib.h"
+#include "stm32h7xx_hal.h"
+#include "cmsis_os2.h"
 // 自定义的delay_ms函数，不依赖HAL库
 // 使用简单的循环实现延迟，确保快速执行
+
+
 void delay_ms(uint32_t ms)
 {
-	HAL_Delay(ms);
+	osDelay(ms);
 }
 
 // 带延迟的LCD控制引脚操作函数
@@ -153,11 +156,26 @@ u16 Lcd_ReadData_16Bit(void)
  * @parameters :x:the x coordinate of the pixel
                 y:the y coordinate of the pixel
  * @retvalue   :None
-******************************************************************************/	
-void LCD_DrawPoint(u16 x,u16 y)
+******************************************************************************/
+// 绘制指定颜色的单个像素（适配LVGL动态颜色）
+void LCD_DrawPoint(u16 x,u16 y,uint16_t color )
 {
-	LCD_SetCursor(x,y);//���ù��λ�� 
-	Lcd_WriteData_16Bit(POINT_COLOR); 
+	if (x>=LCD_W ||y>=LCD_H)
+	{
+		return;
+	}
+	LCD_SetCursor(x,y);
+	Lcd_WriteData_16Bit(color);
+}
+
+// 批量绘制一行像素（提升刷新效率，关键！）
+void LCD_DrawLine_Color(u16 x_start, u16 x_end, u16 y, u16 *color_buf, u16 len)
+{
+	if(y >= LCD_H || x_start >= LCD_W || x_end >= LCD_W) return;
+	LCD_SetWindows(x_start, y, x_end, y); // 设置单行刷新窗口
+	for(u16 i=0; i<len; i++) {
+		Lcd_WriteData_16Bit(color_buf[i]); // 批量写入一行颜色数据
+	}
 }
 
 u16 LCD_ReadPoint(u16 x,u16 y)
@@ -244,9 +262,9 @@ void LCD_GPIOInit(void)
 void LCD_RESET(void)
 {
 	LCD_RST_set(0);  // LCD_RST_CLR + 1ms延迟
-	delay_ms(99);    // 保持总延迟100ms
+	osDelay(100);    // 保持总延迟100ms
 	LCD_RST_set(1);  // LCD_RST_SET + 1ms延迟
-	delay_ms(49);    // 保持总延迟50ms
+	osDelay(50);    // 保持总延迟50ms
 }
 
 /*****************************************************************************
@@ -259,7 +277,7 @@ void LCD_RESET(void)
 void LCD_Init(void)
 {  
 
-	SPI_GPIO_Init(); //SPI GPIO初始化
+	//SPI_GPIO_Init(); //SPI GPIO初始化
 	LCD_GPIOInit();//LCD GPIO初始化
 	LCD_RESET(); //LCD 复位
 	//*************3.5 ST7796S IPS初始化**********//
@@ -351,7 +369,7 @@ void LCD_Init(void)
 
 	LCD_direction(USE_HORIZONTAL);//设置LCD显示方向
 
-	LCD_Clear(WHITE);//清全屏白色
+	//LCD_Clear(BLUE);//清全屏白色
 }
  
 /*****************************************************************************
