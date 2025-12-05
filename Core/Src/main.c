@@ -19,7 +19,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "dma.h"
 #include "i2c.h"
+#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -29,10 +31,10 @@
 #include "game1.h"
 #include "queue.h"
 #include "lvgl.h"
-#include "lcd.h"
-#include "softSPI.h"
-#include "lv_port_disp.h"
-// "lv_port_indev.h"
+
+
+//#include "softSPI.h"
+
 #include "lvgl_demo.h"
 #include <string.h>
 #include "stdio.h"
@@ -115,32 +117,127 @@ void Register_queueHandle(void* QueueHandle)
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-// void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+uint8_t Txdata[]="接收成功__DMA\r\n";
+uint8_t Rxdata[30]={0};
+extern DMA_HandleTypeDef hdma_usart3_rx;    //接收DMA通道的指针地址
+//接收不定长数据
+//注意，DMA的传输过半中断也会触发这个回调中断函数
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+  if (huart== &huart3)
+  {
+    HAL_UART_Transmit_DMA(huart,Rxdata,Size);
+
+    HAL_UARTEx_ReceiveToIdle_DMA(huart,Rxdata,sizeof(Rxdata));
+    __HAL_DMA_DISABLE_IT(&hdma_usart3_rx,DMA_IT_HT);
+  }
+
+}
+
+// //固定长度的接收字节数据
+// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 // {
 //   if (huart==&huart3)
-//    {
-//      HAL_UART_Transmit_IT(&huart3, ID, Size);
-//
-//      HAL_UARTEx_ReceiveToIdle_IT(&huart3,ID,sizeof(ID));
-//
-//    }
+//   {
+//     HAL_UART_Transmit_DMA(huart,Txdata,sizeof(Txdata));
+//     HAL_UART_Receive_DMA(&huart3,Rxdata,2);
+//   }
 // }
 
-// // DMA发送完成回调
-// void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-//  {
-//    if (huart->Instance == USART3)
-//    {
-//      // 可选：用LED闪烁提示发送成功
-//      HAL_GPIO_TogglePin(green_LED_GPIO_Port, green_LED_Pin);
-//    }
-//  }
+// DMA发送完成回调,也是串口中断回调函数
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+ {
+   if (huart->Instance == USART3)
+   {
+     // 可选：用LED闪烁提示发送成功
+     HAL_GPIO_TogglePin(red_LED_GPIO_Port, red_LED_Pin);
+   }
+ }
 
 
 
 
 
 /* USER CODE BEGIN 4 */
+
+
+// DMA测试用全局变量
+#define TEST_BUF_LEN  32  // 测试数据长度（可自定义）
+uint8_t tx_buf[TEST_BUF_LEN];  // DMA发送缓存
+uint8_t rx_buf[TEST_BUF_LEN];  // DMA接收缓存
+volatile uint8_t spi_dma_test_flag = 0; // DMA传输完成标记
+
+// SPI DMA接收完成回调函数
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+  if(hspi->Instance == SPI1) {
+    spi_dma_test_flag = 1; // 标记接收完成
+  }
+}
+
+// SPI DMA错误回调（排查问题用）
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+{
+  if(hspi->Instance == SPI1) {
+    printf("SPI DMA传输错误！错误码：%d\r\n", hspi->ErrorCode);
+  }
+}
+
+// SPI DMA自环回测试函数
+uint8_t spi_dma_self_test(void)
+{
+  // 1. 初始化测试数据（发送已知数据）
+  for(uint8_t i=0; i<TEST_BUF_LEN; i++) {
+    tx_buf[i] = 0x01 + i; // 发送数据：0x01,0x02,0x03...0x20
+    rx_buf[i] = 0;        // 接收缓存清零
+  }
+  spi_dma_test_flag = 0;
+
+  // 2. 启用SPI接收DMA（先启动接收，避免丢数）
+  if(HAL_SPI_Receive_DMA(&hspi1, rx_buf, TEST_BUF_LEN) != HAL_OK) {
+    printf("SPI DMA接收启动失败！\r\n");
+    return 1;
+  }
+
+  // 3. 启用SPI发送DMA（短接后，发送的数据会被自己接收）
+  if(HAL_SPI_Transmit_DMA(&hspi1, tx_buf, TEST_BUF_LEN) != HAL_OK) {
+    printf("SPI DMA发送启动失败！\r\n");
+    return 2;
+  }
+
+  // 4. 等待DMA传输完成（超时保护：500ms）
+  uint32_t timeout = HAL_GetTick() + 500;
+  while(!spi_dma_test_flag && HAL_GetTick() < timeout) {
+    // 空等，等待回调触发
+  }
+
+  if(HAL_GetTick() >= timeout) {
+    printf("SPI DMA传输超时！\r\n");
+    return 3;
+  }
+
+  // 5. 停止SPI DMA（可选，测试完成后复位）
+  HAL_SPI_DMAStop(&hspi1);
+
+  // 6. 校验发送/接收数据
+  uint8_t err_cnt = 0;
+  for(uint8_t i=0; i<TEST_BUF_LEN; i++) {
+    if(tx_buf[i] != rx_buf[i]) {
+      err_cnt++;
+      printf("数据不一致：第%d字节，发送=0x%02X，接收=0x%02X\r\n", i, tx_buf[i], rx_buf[i]);
+    }
+  }
+
+  // 7. 输出测试结果
+  if(err_cnt == 0) {
+    printf("✅ SPI DMA自环回测试通过！所有%d字节数据一致\r\n", TEST_BUF_LEN);
+    return 0;
+  } else {
+    printf("❌ SPI DMA自环回测试失败！共%d字节数据错误\r\n", err_cnt);
+    return 4;
+  }
+}
+
 
 /* USER CODE END 4 */
 
@@ -159,6 +256,8 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
+
+
   /* USER CODE END 1 */
 
   /* MPU Configuration--------------------------------------------------------*/
@@ -170,7 +269,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
- uint8_t test_data[]={0x11,0x22,0x33,0x44};
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -182,36 +281,22 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM5_Init();
   MX_USART3_UART_Init();
   MX_I2C1_Init();
-  //SPI_GPIO_Init();
-
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  //LVGL的初始化
-  printf("开始!!!!\r\n");
-  delay_us(1000);
-  LCD_Init();
-  printf("结束!!!!\r\n");
-  HAL_Delay(400);
-
-  /* USER CODE BEGIN 2 */
-  // printf("===== 软SPI回环测试开始 =====\r\n");
-  //
-  // // 遍历测试数据，自发自收
-  // for(uint8_t i=0; i<sizeof(test_data); i++)
-  // {
-  //
-  //   uint8_t send_byte = test_data[i];
-  //   uint8_t recv_byte = 0;
-  //   recv_byte=SPI_WriteReadByte(send_byte);
-  //   // 3. 打印结果
-  //   printf("发送: 0x%02X → 接收: 0x%02X → %s\r\n",
-  //          send_byte, recv_byte,
-  //          (send_byte == recv_byte) ? "成功" : "失败");
+  // printf("========= SPI DMA自环回测试开始 =========\r\n");
+  // uint8_t test_ret = spi_dma_self_test();
+  // if(test_ret == 0) {
+  //   // DMA测试通过，可继续集成到LCD批量绘制
+  //   printf("DMA测试通过，可用于LCD批量绘制！\r\n");
+  // } else {
+  //   // DMA测试失败，排查问题
+  //   printf("DMA测试失败，错误码：%d\r\n", test_ret);
   // }
-  //
-  // printf("===== 软SPI回环测试结束 =====\r\n");
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -344,7 +429,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  if (htim->Instance == TIM17)
+  {
+    lv_tick_inc(1);
+  }
   /* USER CODE END Callback 1 */
 }
 

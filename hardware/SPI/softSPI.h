@@ -28,6 +28,5 @@ void SPI_WriteByte(uint8_t Byte);
 uint8_t SPI_ReadByte(void);
 uint8_t SPI_WriteReadByte(uint8_t tx_byte);
 void SPI_GPIO_Init(void);
-void SoftSPI_DelayUs(uint32_t us);  // 微秒延迟函数
 
 #endif

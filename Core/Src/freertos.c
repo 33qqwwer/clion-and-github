@@ -35,6 +35,7 @@
 #include "lvgl.h"
 #include "lvgl_demo.h"
 #include "lcd.h"
+#include "touch.h"
 #include "lvgl_private.h"
 #include "lv_global.h"
 #include "event_groups.h"
@@ -46,13 +47,14 @@
 EventGroupHandle_t EventGroup_hadle;
 BaseType_t lvglTask_state;
 BaseType_t musicTask_state;
-TaskHandle_t* musictaskhander;
+TaskHandle_t* musictaskhander=NULL;
 UBaseType_t pri_music=osPriorityNormal;
 
-TaskHandle_t* PWM_LEDhander;
-TaskHandle_t* lvgl_hander;
-TaskHandle_t* task1hander;
-TaskHandle_t* task2hander;
+TaskHandle_t* PWM_LEDhander=NULL;
+TaskHandle_t* lvgl_hander=NULL;
+
+TaskHandle_t* task1hander=NULL;
+TaskHandle_t* task2hander=NULL;
 
 /* USER CODE END PTD */
 
@@ -75,7 +77,7 @@ osThreadId_t LEDTaskHandle;
 const osThreadAttr_t LEDTask_attributes = {
   .name = "LEDTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for my_UARTTask */
 osThreadId_t my_UARTTaskHandle;
@@ -135,8 +137,11 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
 
   //创建LVGL的DEMO任务
- //lvglTask_state=xTaskCreate(lvgl_demo_task,"lvgl_demo",4096,NULL,osPriorityNormal,lvgl_hander);
-
+ //  lvglTask_state=xTaskCreate(lvgl_demo_task,"lvgl_demo",4096,NULL,osPriorityNormal,lvgl_hander);
+ // if (lvglTask_state!=pdPASS)
+ // {
+ //   printf("lvgl创建任务失败！！");
+ // }
 
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -162,13 +167,9 @@ void Start_LEDTask(void *argument)
 
   for(;;)
   {
+    FT6336_Scan();
     HAL_GPIO_TogglePin(yellow_LED_GPIO_Port, yellow_LED_Pin);
     HAL_GPIO_WritePin(green_LED_GPIO_Port, green_LED_Pin, GPIO_PIN_SET);
-   // HAL_GPIO_WritePin(SPI1_MISO_GPIO_Port, SPI1_MISO_Pin, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(SPI1_MOSI_GPIO_Port, SPI1_MOSI_Pin, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(LCD_RST_GPIO_Port, LCD_RST_Pin, GPIO_PIN_SET);
 
      vTaskDelay(100);
     osDelay(1);
@@ -184,36 +185,29 @@ void Start_LEDTask(void *argument)
 */
 
 
-uint8_t ID[4];
 
 /* USER CODE END Header_Start_UARTTask */
+extern uint8_t Rxdata[30];
 void Start_UARTTask(void *argument)
 {
   /* USER CODE BEGIN Start_UARTTask */
   // 添加短暂延迟，确保串口硬件稳定后再发送数据
   osDelay(100);
-  
-  //  uint16_t temp= LCD_Read_ID();
-  //  ID[0]=temp>>8;
-  //  ID[1]=temp;
-  // ID[2]='\r';
-  // ID[3]='\n';
-  // extern uint8_t receiveData[30];
-  // HAL_UART_Transmit(&huart3,ID,sizeof(ID),100);
-
+  uint8_t Txxxxdata[]="发送__DMA\r\n";
   /*创建队列*/
   //QueueHandle_t uartQueue=xQueueCreate(10,sizeof(ID));
   /* Infinite loop */
-
+  extern DMA_HandleTypeDef hdma_usart3_rx;    //接收DMA通道的指针地址
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart3,Rxdata,sizeof(Rxdata));
+  __HAL_DMA_DISABLE_IT(&hdma_usart3_rx,DMA_IT_HT);
   for(;;)
   {
     //HAL_GPIO_WritePin(SPI1_MOSI_GPIO_Port, SPI1_MOSI_Pin, GPIO_PIN_SET);
-
+    //HAL_UART_Transmit_DMA(&huart3,Txxxxdata,sizeof(Txxxxdata));
     // printf("__io_putchar!!!!\r\n");
-    // printf("成功！\r\n");
-    //
-    // // 方式2：使用 printf（会间接调用 fputc）
+
     // printf("Hello World!\r\n");
+
 
     osDelay(500);  // 延迟可保留，此时不会再导致冲突
   }

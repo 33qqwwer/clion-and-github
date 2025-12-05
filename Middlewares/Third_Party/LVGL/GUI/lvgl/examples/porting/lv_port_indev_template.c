@@ -10,7 +10,8 @@
  *      INCLUDES
  *********************/
 #include "lv_port_indev_template.h"
-
+#include "touch.h"
+#include "stdio.h"
 /*********************
  *      DEFINES
  *********************/
@@ -174,6 +175,7 @@ void lv_port_indev_init(void)
 /*Initialize your touchpad*/
 static void touchpad_init(void)
 {
+    TP_Init();
     /*Your code comes here*/
 }
 
@@ -187,6 +189,7 @@ static void touchpad_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
     if(touchpad_is_pressed()) {
         touchpad_get_xy(&last_x, &last_y);
         data->state = LV_INDEV_STATE_PRESSED;
+        printf("LVGL X:%d, Y:%d\r\n", last_x, last_y); // 打印LVGL最终坐标
     }
     else {
         data->state = LV_INDEV_STATE_RELEASED;
@@ -201,17 +204,47 @@ static void touchpad_read(lv_indev_t * indev_drv, lv_indev_data_t * data)
 static bool touchpad_is_pressed(void)
 {
     /*Your code comes here*/
+    /* 安全检查：scan函数指针不为空才调用 */
+    if(tp_dev.scan == NULL) {
+        return false;
+    }
 
-    return false;
+    /* 扫描触摸数据（更新tp_dev） */
+    tp_dev.scan();
+
+    /* 判断是否按下：tp_dev.sta的b7位（TP_PRES_DOWN）是否为1 */
+    if(tp_dev.sta & TP_PRES_DOWN)
+         {
+        return true;
+         }
+    else
+        {
+        return false;
+        }
+
 }
+
+// 需先定义LCD分辨率（根据你的硬件修改，比如480x320）
+//设置LCD的尺寸
+#define LCD_W 320
+#define LCD_H 480
 
 /*Get the x and y coordinates if the touchpad is pressed*/
 static void touchpad_get_xy(int32_t * x, int32_t * y)
 {
     /*Your code comes here*/
+    /* 安全检查：避免空指针 */
+    if(x == NULL || y == NULL) return;
 
-    (*x) = 0;
-    (*y) = 0;
+    int32_t raw_x = tp_dev.x[0];
+    int32_t raw_y = tp_dev.y[0];
+    /* 边界限制：防止坐标超出LCD范围 */
+    raw_x = LV_CLAMP(0, raw_x, LCD_W - 1);
+    raw_y = LV_CLAMP(0, raw_y, LCD_H - 1);
+
+    /* 赋值给LVGL */
+    *x = raw_x;
+    *y = raw_y;
 }
 
 /*------------------

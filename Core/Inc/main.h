@@ -60,28 +60,24 @@ void delay_us(uint32_t us);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SD_CS_Pin GPIO_PIN_10
+#define SD_CS_GPIO_Port GPIOF
 #define LCD_RST_Pin GPIO_PIN_0
 #define LCD_RST_GPIO_Port GPIOC
+#define CTP_INT_Pin GPIO_PIN_2
+#define CTP_INT_GPIO_Port GPIOC
 #define LCD_RS_Pin GPIO_PIN_3
 #define LCD_RS_GPIO_Port GPIOC
 #define LCD_CS_Pin GPIO_PIN_3
 #define LCD_CS_GPIO_Port GPIOA
-#define SPI1_SCK_Pin GPIO_PIN_5
-#define SPI1_SCK_GPIO_Port GPIOA
-#define SPI1_MISO_Pin GPIO_PIN_6
-#define SPI1_MISO_GPIO_Port GPIOA
 #define green_LED_Pin GPIO_PIN_0
 #define green_LED_GPIO_Port GPIOB
+#define CTP_RST_Pin GPIO_PIN_1
+#define CTP_RST_GPIO_Port GPIOB
 #define red_LED_Pin GPIO_PIN_14
 #define red_LED_GPIO_Port GPIOB
-#define SPI1_MOSI_Pin GPIO_PIN_5
-#define SPI1_MOSI_GPIO_Port GPIOB
 #define yellow_LED_Pin GPIO_PIN_1
 #define yellow_LED_GPIO_Port GPIOE
-#define CTP_RST_Pin GPIO_PIN_8
-#define CTP_RST_GPIO_Port GPIOI
-#define CTP_INT_Pin GPIO_PIN_11
-#define CTP_INT_GPIO_Port GPIOH
 
 /* USER CODE BEGIN Private defines */
 
