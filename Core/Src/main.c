@@ -150,8 +150,7 @@ void Register_queueHandle(void* QueueHandle)
 
 extern void car_game(void );
 /* USER CODE END 0 */
-// 测试用发送数据（选特征值，如0x55、0xAA、0x12等）
-uint8_t test_data[] = {0x55, 0xAA, 0x12, 0x34, 0xAB, 0xCD};
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -172,7 +171,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+ uint8_t test_data[]={0x11,0x22,0x33,0x44};
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -219,23 +218,12 @@ int main(void)
   printf("===== 软SPI回环测试结束 =====\r\n");
   /* USER CODE END 2 */
 
-
-
-  LCD_Init();
-  uint16_t ID=LCD_Read_ID();
-  printf("%d,",ID );
- // lv_init();
-  //lv_port_disp_init();
-  //lv_port_indev_init();
-
-  /* USER CODE END 2 */
-
   /* Init scheduler */
-  osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
+  // osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
+  // MX_FREERTOS_Init();
+  //
+  // /* Start scheduler */
+  // osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
@@ -244,7 +232,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    HAL_GPIO_WritePin(SPI3_MOSI_GPIO_Port,SPI3_MOSI_Pin,GPIO_PIN_SET);
+    HAL_GPIO_WritePin(text_GPIO_Port,text_Pin,GPIO_PIN_SET);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -393,6 +382,4 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* User can add his own implementation to report the file name and line number, ex: printf("Wrong parameters value: file %s on line %d\n", file, line) */
   /* USER CODE END 6 */
 }
-
-
 #endif /* USE_FULL_ASSERT */

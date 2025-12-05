@@ -62,6 +62,8 @@ void delay_us(uint32_t us);
 /* Private defines -----------------------------------------------------------*/
 #define SD_CS_Pin GPIO_PIN_2
 #define SD_CS_GPIO_Port GPIOF
+#define text_Pin GPIO_PIN_10
+#define text_GPIO_Port GPIOF
 #define green_LED_Pin GPIO_PIN_0
 #define green_LED_GPIO_Port GPIOB
 #define SPI3_MOSI_Pin GPIO_PIN_2

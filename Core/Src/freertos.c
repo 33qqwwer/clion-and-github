@@ -203,6 +203,8 @@ void Start_UARTTask(void *argument)
 
   for(;;)
   {
+    HAL_GPIO_WritePin(SPI3_MOSI_GPIO_Port, SPI3_MOSI_Pin, GPIO_PIN_SET);
+
     // printf("__io_putchar!!!!\r\n");
     // printf("成功！\r\n");
     //
