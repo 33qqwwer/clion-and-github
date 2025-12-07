@@ -38,6 +38,14 @@ file(GLOB_RECURSE LVGL_ALL_SOURCES
         ${LVGL_ROOT_DIR}/src/*.c
         ${LVGL_ROOT_DIR}/examples/*.c
 )
+
+#2.LVGL的测试代码目录
+set(LVGL_demo_ROOT_DIR ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/LVGL/GUI_APP/demos/widgets)
+# 2. 递归查找  目录下所有 .c 文件（核心！覆盖所有依赖）
+file(GLOB_RECURSE LVGL_demo_ALL_SOURCES
+        ${LVGL_demo_ROOT_DIR}/*.c
+        ${LVGL_demo_ROOT_DIR}/assets/*.c
+)
 #hardware里的文件
 set(hardware_ROOT_DIR ${CMAKE_SOURCE_DIR}/hardware)
 file(GLOB_RECURSE hardware_ALL_SOURCES
@@ -45,13 +53,14 @@ file(GLOB_RECURSE hardware_ALL_SOURCES
         ${hardware_ROOT_DIR}/TOUCH/*.c
 )
 
+
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME}
 
         # LVGL 所有核心 .c 文件（批量添加，解决所有依赖）
         ${LVGL_ALL_SOURCES}
         ${hardware_ALL_SOURCES}
-
+        ${LVGL_demo_ALL_SOURCES}
         #Core/Src/music.c
         #Core/Src/oled.c
         #Core/Src/font.c
@@ -83,6 +92,7 @@ add_executable(${CMAKE_PROJECT_NAME}
         Middlewares/Third_Party/LVGL/GUI/lvgl/examples/porting/osal/lv_example_osal.h
         hardware/SPI/softSPI.c
         hardware/SPI/softSPI.h
+        Middlewares/Third_Party/LVGL/GUI_APP/demos/widgets/lv_demo_widgets.c
         # lv_tick_inc 实现
 )
 

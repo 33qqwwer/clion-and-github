@@ -27,7 +27,9 @@ void lvgl_demo_task(void *pvParameter)
 
     printf("LVGL初始化完成!!!!\r\n");
     (void)pvParameter;
- lv_demo_stress();
+    //lv_demo_stress();
+   // lv_demo_benchmark();
+  lv_demo_widgets();
     while (1)
     {
         lv_timer_handler();

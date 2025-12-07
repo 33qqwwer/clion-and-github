@@ -188,16 +188,19 @@ void LCD_DrawLine_Color(u16 x_start, u16 x_end, u16 y, u16 *color_buf, u16 len)
 		color_buff8[i*2]=color_buf[i]>>8 & 0xff;
 		color_buff8[i*2+1]=color_buf[i];
 	}
+
+	//使用DMA前先获取信号量
+	xSemaphoreTake(SPI_DMA_handle,HAL_MAX_DELAY);
+
 	// 3. 设置LCD窗口
 	LCD_SetWindows(x_start, y, x_end, y);
 	LCD_CS_set(0);
 	LCD_RS_set(1);
-	//使用DMA前先获取信号量
-	xSemaphoreTake(SPI_DMA_handle,HAL_MAX_DELAY);
-	// 4. 发送拼接后的数据
+	// 4. 发送拼接后的数据,拆开后的16位的数据高字节先发送，低字节后发送
 	HAL_SPI_Transmit_DMA(&hspi1, color_buff8, real_pixel*2);
 
 }
+
 
 
 //spi的回调函数
@@ -215,7 +218,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 u16 LCD_ReadPoint(u16 x,u16 y)
 {
 	u16 color;
-	LCD_SetCursor(x,y);//���ù��λ�� 
+	LCD_SetCursor(x,y);//
 	color = Lcd_ReadData_16Bit();
 	return color;
 }

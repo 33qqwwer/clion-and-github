@@ -92,6 +92,7 @@ void LCD_Clear(u16 Color);
 void LCD_SetCursor(u16 Xpos, u16 Ypos);
 void LCD_DrawPoint(u16 x,u16 y,uint16_t color );//画点
 void LCD_DrawLine_Color(u16 x_start, u16 x_end, u16 y, u16 *color_buf, u16 len);
+void disp_flush_fullscreen(void * disp_drv,uint8_t * px_map);
 u16  LCD_ReadPoint(u16 x,u16 y); //读点
 void LCD_DrawLine(u16 x1, u16 y1, u16 x2, u16 y2);
 void LCD_DrawRectangle(u16 x1, u16 y1, u16 x2, u16 y2);		   

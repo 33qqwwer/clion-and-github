@@ -126,7 +126,7 @@ void disp_disable_update(void)
 static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t * px_map)
 {
     if(disp_flush_enabled)
-        {
+    {
         /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
         /* 解析LVGL的RGB565数据（2字节=1个像素），逐点绘制 */
         int32_t y;
@@ -136,21 +136,21 @@ static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t 
 
         /* 2. 逐行批量绘制（核心：替换逐点绘制） */
         for(y = area->y1; y <= area->y2; y++)
-            {
+        {
             // 2.1 转换LVGL的uint8_t[]格式为uint16_t[]（适配RGB565）
             for(uint32_t x = 0; x < line_width; x++)
-                {
+            {
                 // 拼接LVGL的2字节数据为16位RGB565颜色（根据LCD字节序调整）
                 // 若颜色失真，可交换字节序：color_buf[x] = (px_map[px_idx+1] << 8) | px_map[px_idx];
                 color_buf[x] = (px_map[px_idx] << 8) | px_map[px_idx + 1];
                 px_idx += 2;  // 跳过当前像素的2字节，指向下一个像素
-                }
+            }
 
             // 2.2 调用批量绘制函数，绘制当前行
             LCD_DrawLine_Color(area->x1, area->x2, y, color_buf, line_width);
-             }
-
         }
+
+    }
     /* 通知LVGL刷新完成 */
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
