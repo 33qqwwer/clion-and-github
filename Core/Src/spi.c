@@ -125,7 +125,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     hdma_spi1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_spi1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_spi1_rx.Init.Mode = DMA_NORMAL;
-    hdma_spi1_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_spi1_rx.Init.Priority = DMA_PRIORITY_HIGH;
     hdma_spi1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_spi1_rx) != HAL_OK)
     {
@@ -143,7 +143,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     hdma_spi1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_spi1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_spi1_tx.Init.Mode = DMA_NORMAL;
-    hdma_spi1_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_spi1_tx.Init.Priority = DMA_PRIORITY_HIGH;
     hdma_spi1_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_spi1_tx) != HAL_OK)
     {
@@ -195,16 +195,48 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 
 /* USER CODE BEGIN 1 */
 
+volatile uint8_t spi_tx_done = 0;  // 发送标记
+volatile uint8_t spi_rx_data = 0;  // 接收数据缓存
+volatile uint8_t spi_rx_done = 0;  // 接收标记
 
 void SPI_WriteByte(uint8_t txData)
 {
+  // if (spi_tx_done==0)  //没有发送
+  // {
+  //   spi_tx_done=1;
+  //   HAL_SPI_Transmit_DMA(&hspi1,&txData,1);
+  //  while (spi_tx_done==0) ;
+  // }
   HAL_SPI_Transmit(&hspi1,&txData,1,100);
+
+
 }
 uint8_t SPI_ReadByte(void )
 {
-  uint8_t rxData=0;
-  HAL_SPI_Receive(&hspi1,&rxData,1,100);
-  return rxData;
+  // if (spi_rx_done==0)
+  // {
+  //   spi_rx_done=1;
+  //   HAL_SPI_Receive_DMA(&hspi1,&spi_rx_data,1);
+  //   while (spi_rx_done==0) ;
+  //
+  // }
+  uint8_t rxdata;
+  HAL_SPI_Receive(&hspi1,&rxdata,1,100);
+  return rxdata;
 }
+
+
+
+
+
+// void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+// {
+//   if (hspi==&hspi1)
+//   {
+//     spi_rx_done=0;
+//   }
+// }
+
+
 
 /* USER CODE END 1 */

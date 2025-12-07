@@ -92,8 +92,9 @@ BaseType_t xQueueReceiveFromISR     (
 
 /*************************信号量*******************************/
 SemaphoreHandle_t xSemaphoreCreateBinary( void );
+
 //创建一个二进制信号量，返回它的句柄。
- //* 此函数无需动态分配内存，所以需要先有一个StaticSemaphore_t结构体，并传入它的指针
+ //* 静态分配内存，所以需要先有一个StaticSemaphore_t结构体，并传入它的指针
  //* 返回值: 返回句柄，非NULL表示成功
 SemaphoreHandle_t xSemaphoreCreateBinaryStatic( StaticSemaphore_t *pxSemaphoreBuffer );
 /* 创建一个计数型信号量，返回它的句柄。
@@ -136,7 +137,7 @@ BaseType_t xSemaphoreTakeFromISR      (
                                     BaseType_t *pxHigherPriorityTaskWoken
                                      );
 
-/******************  *******互斥量*******************************/
+/*************************互斥量*******************************/
 
 #define configUSE_MUTEXES 1
 

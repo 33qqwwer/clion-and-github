@@ -1,5 +1,7 @@
 
 #include "ft6336.h"
+
+#include "cmsis_os2.h"
 #include "touch.h"
 #include "i2c.h"
 #include "string.h"
@@ -51,47 +53,20 @@ u8 FT6336_Init(void)
 	u8 temp[2];
 
 	FT_RST(0);				//复位
-	HAL_Delay(10);
+	osDelay(10);
 	FT_RST(1);				//释放复位
-	HAL_Delay(500);
+	osDelay(500);
 
 	// 1. 初始化FT6336工作模式
 	temp[0]=0;
 	FT6336_WR_Reg(FT_DEVIDE_MODE,temp,1);	//正常操作模式
-	FT6336_WR_Reg(FT_ID_G_MODE,temp,1);		//查询模式
-	temp[0]=40;								//触摸灵敏度（越小越灵敏）
-	FT6336_WR_Reg(FT_ID_G_THGROUP,temp,1);
-
-	// 2. 校验核心ID（Vendor ID固定为0x11）
-	FT6336_RD_Reg(FT_ID_G_FOCALTECH_ID,&temp[0],1);
-	if(temp[0]!=0x11)
-	{
-		printf("FT6336 Vendor ID Error:0x%02X\r\n",temp[0]);
-		return 1;
-	}
-
-	// 3. 校验芯片型号（FT6336的MID=0x26，HID=0x64）
-	FT6336_RD_Reg(FT_ID_G_CIPHER_MID,&temp[0],1);
-	if(temp[0]!=0x26)
-	{
-		printf("FT6336 MID Error:0x%02X\r\n",temp[0]);
-		return 1;
-	}
-	FT6336_RD_Reg(FT_ID_G_CIPHER_HIGH,&temp[0],1);
-	if(temp[0]!=0x64)
-	{
-		printf("FT6336 HID Error:0x%02X\r\n",temp[0]);
-		return 1;
-	}
-
-	// 4. 读取芯片版本（仅打印，不校验）
-	FT6336_RD_Reg(FT_ID_G_LIB_VERSION,&temp[0],2);
-	printf("FT6336 Version:0x%04X\r\n",((u16)temp[0]<<8)+temp[1]);
-
-	// 5. 设置激活周期（12ms，范围12~14ms）
-	temp[0]=12;
-	FT6336_WR_Reg(FT_ID_G_PERIODACTIVE,temp,1);
-
+	temp[0]=0x00;
+	FT6336_WR_Reg(FT_ID_G_MODE,temp,1);		//0X00为查询模式和0X01中断模式
+	temp[0]=40;
+	FT6336_WR_Reg(FT_ID_G_THGROUP,temp,1);//触摸灵敏度（越小越灵敏）
+	// temp[0] = 12;
+	// FT6336_WR_Reg(FT_ID_G_PERIODACTIVE, temp, 1); // 激活周期
+	printf("FT6336 初始化完成\r\n");
 	return 0;
 }
 

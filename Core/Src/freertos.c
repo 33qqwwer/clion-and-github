@@ -137,7 +137,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
 
   //创建LVGL的DEMO任务
- //  lvglTask_state=xTaskCreate(lvgl_demo_task,"lvgl_demo",4096,NULL,osPriorityNormal,lvgl_hander);
+   lvglTask_state=xTaskCreate(lvgl_demo_task,"lvgl_demo",4096,NULL,osPriorityNormal+1,lvgl_hander);
  // if (lvglTask_state!=pdPASS)
  // {
  //   printf("lvgl创建任务失败！！");
@@ -167,11 +167,11 @@ void Start_LEDTask(void *argument)
 
   for(;;)
   {
-    FT6336_Scan();
+  //  FT6336_Scan();
     HAL_GPIO_TogglePin(yellow_LED_GPIO_Port, yellow_LED_Pin);
     HAL_GPIO_WritePin(green_LED_GPIO_Port, green_LED_Pin, GPIO_PIN_SET);
 
-     vTaskDelay(100);
+     vTaskDelay(500);
     osDelay(1);
   }
   /* USER CODE END Start_LEDTask */
@@ -184,10 +184,9 @@ void Start_LEDTask(void *argument)
 * @retval None
 */
 
-
+extern uint8_t Rxdata[30];
 
 /* USER CODE END Header_Start_UARTTask */
-extern uint8_t Rxdata[30];
 void Start_UARTTask(void *argument)
 {
   /* USER CODE BEGIN Start_UARTTask */
@@ -209,7 +208,7 @@ void Start_UARTTask(void *argument)
     // printf("Hello World!\r\n");
 
 
-    osDelay(500);  // 延迟可保留，此时不会再导致冲突
+    osDelay(50);  // 延迟可保留，此时不会再导致冲突
   }
 
   /* USER CODE END Start_UARTTask */

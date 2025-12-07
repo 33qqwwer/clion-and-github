@@ -1,5 +1,7 @@
 
 #include "touch.h" 
+
+#include "cmsis_os2.h"
 #include "lcd.h"
 #include "stdlib.h"
 #include "math.h"
@@ -32,5 +34,3 @@ u8 TP_Init(void)
 	tp_dev.scan=FT6336_Scan;	//扫描函数指向GT911触摸屏扫描
 	return 0;
 }
-
-

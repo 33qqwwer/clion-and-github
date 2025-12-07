@@ -1,10 +1,11 @@
 
 #include "lcd.h"
-
-
 #include "stdlib.h"
 #include "stm32h7xx_hal.h"
 #include "cmsis_os2.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
+
 // 自定义的delay_ms函数，不依赖HAL库
 // 使用简单的循环实现延迟，确保快速执行
 
@@ -125,12 +126,8 @@ void LCD_ReadRAM_Prepare(void)
  * @retvalue   :None
 ******************************************************************************/	 
 void Lcd_WriteData_16Bit(u16 Data)
-{ 	
-	 LCD_CS_set(0);
-	 LCD_RS_set(1);
-   SPI_WriteByte(Data>>8);
-   SPI_WriteByte(Data);
-	 LCD_CS_set(1);
+{
+	HAL_SPI_Transmit_DMA(&hspi1,&Data,2);
 }
 
 u16 Lcd_ReadData_16Bit(void)
@@ -168,15 +165,52 @@ void LCD_DrawPoint(u16 x,u16 y,uint16_t color )
 	Lcd_WriteData_16Bit(color);
 }
 
+// 方案1：静态数组（全局/静态，堆上分配）
+#define MAX_LINE_PIXEL 320 // 根据你的LCD宽度定义
+static uint8_t color_buff8[MAX_LINE_PIXEL*2]; // 静态数组，仅初始化一次
+
+//定义一个二值信号量
+SemaphoreHandle_t SPI_DMA_handle;
 // 批量绘制一行像素（提升刷新效率，关键！）
 void LCD_DrawLine_Color(u16 x_start, u16 x_end, u16 y, u16 *color_buf, u16 len)
 {
-	if(y >= LCD_H || x_start >= LCD_W || x_end >= LCD_W) return;
-	LCD_SetWindows(x_start, y, x_end, y); // 设置单行刷新窗口
-	for(u16 i=0; i<len; i++) {
-		Lcd_WriteData_16Bit(color_buf[i]); // 批量写入一行颜色数据
+	// 1. 完整边界校验
+	if(y >= LCD_H || x_start >= LCD_W || x_end >= LCD_W ||
+	   x_start > x_end || len == 0 || color_buf == NULL) return;
+
+	// 2. 计算实际可发送的16位像素数
+	u16 real_pixel = x_end - x_start + 1;
+	if(len < real_pixel) real_pixel = len;
+
+	//由于是小端存储，必须调整数组内字节发送的顺序
+	for (uint16_t i=0;i<real_pixel;i++)
+	{
+		color_buff8[i*2]=color_buf[i]>>8 & 0xff;
+		color_buff8[i*2+1]=color_buf[i];
+	}
+	// 3. 设置LCD窗口
+	LCD_SetWindows(x_start, y, x_end, y);
+	LCD_CS_set(0);
+	LCD_RS_set(1);
+	//使用DMA前先获取信号量
+	xSemaphoreTake(SPI_DMA_handle,HAL_MAX_DELAY);
+	// 4. 发送拼接后的数据
+	HAL_SPI_Transmit_DMA(&hspi1, color_buff8, real_pixel*2);
+
+}
+
+
+//spi的回调函数
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	if (hspi==&hspi1)
+	{
+		LCD_CS_set(1);
+			//发送完成后释放信号量
+		xSemaphoreGiveFromISR(SPI_DMA_handle,NULL); //这里不需要,PdTRUE表示中断回调函数后执行一次任务调度,放信号量后若唤醒了更高优先级的任务
 	}
 }
+
 
 u16 LCD_ReadPoint(u16 x,u16 y)
 {
@@ -275,8 +309,7 @@ void LCD_RESET(void)
  * @retvalue   :None
 ******************************************************************************/	 	 
 void LCD_Init(void)
-{  
-
+{
 	//SPI_GPIO_Init(); //SPI GPIO初始化
 	LCD_GPIOInit();//LCD GPIO初始化
 	LCD_RESET(); //LCD 复位
@@ -369,6 +402,12 @@ void LCD_Init(void)
 
 	LCD_direction(USE_HORIZONTAL);//设置LCD显示方向
 
+	//创建一个二值信号量
+	SPI_DMA_handle=xSemaphoreCreateBinary();
+	if (  SPI_DMA_handle!=NULL)
+	{
+		xSemaphoreGive(SPI_DMA_handle);
+	}
 	//LCD_Clear(BLUE);//清全屏白色
 }
  

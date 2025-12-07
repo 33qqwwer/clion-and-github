@@ -175,8 +175,8 @@ void lv_port_indev_init(void)
 /*Initialize your touchpad*/
 static void touchpad_init(void)
 {
-    TP_Init();
     /*Your code comes here*/
+    TP_Init();
 }
 
 /*Will be called by the library to read the touchpad*/
@@ -208,19 +208,13 @@ static bool touchpad_is_pressed(void)
     if(tp_dev.scan == NULL) {
         return false;
     }
+    //printf("111\r\n");
+                /* 扫描触摸数据（更新tp_dev） */
+                tp_dev.scan();
 
-    /* 扫描触摸数据（更新tp_dev） */
-    tp_dev.scan();
-
-    /* 判断是否按下：tp_dev.sta的b7位（TP_PRES_DOWN）是否为1 */
-    if(tp_dev.sta & TP_PRES_DOWN)
-         {
-        return true;
-         }
-    else
-        {
-        return false;
-        }
+                /* 判断是否按下：tp_dev.sta的b7位（TP_PRES_DOWN）是否为1 */
+    /* 3. 判断触摸状态并直接返回（无缓存/无中断，实时读取） */
+    return (tp_dev.sta & TP_PRES_DOWN) ? true : false;
 
 }
 
